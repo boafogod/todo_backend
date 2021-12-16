@@ -1,16 +1,21 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 import TodoModel from './schemas/todo_schema.js'
 
 
+dotenv.config();
 const app = express();
+app.use(express.json());
+const db = process.env.DB_URL;  
+const PORT = process.env.PORT || 3000;
 
-mongoose.connect('mongodb+srv://boafogod1:pu66y419god@cluster0.9oedz.mongodb.net/myTask?retryWrites=true&w=majority', {
+mongoose.connect(db, {
     useUnifiedTopology: true}).then(()=>{
         console.log('Connected to MongoDB succesfully')}).catch((err)=>{
             console.log(err)})
 //creat todo
-app.get('/todo', async(req,res)=>{
+app.get('/todos', async(req,res)=>{
     try {
         const todos = await TodoModel.find({});
         return res.status(200).json({
@@ -50,5 +55,21 @@ app.delete('/todos/:id', async(req,res)=>{
         console.log("Somthing went wrong", error);
     }
 })
+//  Update Todo
+app.patch('/todos/:id',async(req,res)=>{
+    try {
+        const{id}=req.params;
+        const {status}= req.body;
+        const UpdateTodo = await TodoModel.updateOne({status:status}).where ({_id:id})
+        return res.status(201).json({
+            status:true,
+            message: 'Todo updated successfully',
+            data: UpdateTodo
+        })
+        
+    } catch (error) { console.log('Something went wrong', error)
+        
+    }
+})
 
-            app.listen(3000)
+            app.listen(PORT)
